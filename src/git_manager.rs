@@ -39,10 +39,12 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
 
     let mut callbacks = RemoteCallbacks::new();
     callbacks.credentials(|_url, username_from_url, _allowed_types| {
+        println!("Attempting to authenticate for URL: {}", _url);
         let password = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
         println!("{:?}", username_from_url);
         println!("{:?}", password);
         let username = username_from_url.unwrap_or("jarl.due@gmail.com");
+        println!("{:?}", username);
         Cred::userpass_plaintext(&username, &password)
     });
 
