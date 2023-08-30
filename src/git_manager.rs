@@ -1,5 +1,6 @@
+use std::env;
 use std::error::Error;
-use git2::{Repository, Signature};
+use git2::{Cred, RemoteCallbacks, Repository, Signature};
 
 pub fn get_git_repo() -> Repository {
     Repository::open(".").expect("Failed to open repo")
@@ -35,6 +36,12 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
         &tree,
         &[&parent_commit],
     )?;
+
+    let mut callbacks = RemoteCallbacks::new();
+    callbacks.credentials(|_url, username_from_url, _allowed_types| {
+        let password = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
+        Cred::userpass_plaintext(username_from_url.unwrap(), &password)
+    });
 
     // Push the changes
     let mut remote = repo.find_remote("origin")?;
