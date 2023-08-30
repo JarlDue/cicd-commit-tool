@@ -48,6 +48,7 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
     let mut push_options = PushOptions::new();
     push_options.remote_callbacks(callbacks);
 
+    println!("Pushing");
     // Push the changes
     let mut remote = repo.find_remote("origin")?;
     remote.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_options))?;
