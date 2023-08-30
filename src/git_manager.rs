@@ -41,7 +41,7 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
     callbacks.credentials(|_url, username_from_url, _allowed_types| {
         let password = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
         println!("{:?}", username_from_url);
-        let username = username_from_url.ok_or_else(|| git2::Error::from_str("Username not found"))?;
+        let username = username_from_url.unwrap_or("jarl.due@gmail.com");
         Cred::userpass_plaintext(&username, &password)
     });
 
