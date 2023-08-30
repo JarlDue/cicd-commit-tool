@@ -43,7 +43,7 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
         let password = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
         println!("{:?}", username_from_url);
         println!("{:?}", password);
-        let username = username_from_url.unwrap_or("jarl.due@gmail.com");
+        let username = username_from_url.unwrap_or("Some-Mail");
         println!("{:?}", username);
         Cred::userpass_plaintext(&username, &password)
     });
