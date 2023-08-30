@@ -48,7 +48,7 @@ fn main() {
             let commit_result = git_manager::commit_to_repo(&name.as_ref().unwrap_or(&"No Message provided".to_string()), "Jarl Due", "jarl.due@sos.eu");
             match commit_result {
                 Ok(_) => {println!("Commit pushed successfully")}
-                Err(_) => {println!("Something went wrong!")}
+                Err(err) => {println!("Something went wrong! {:?}", err)}
             }
         }
     }
