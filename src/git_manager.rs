@@ -42,6 +42,7 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
         println!("Attempting to authenticate for URL: {}", _url);
         let token = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
         println!("{:?}", username_from_url);
+        println!("{:?}", token);
         let username = username_from_url.unwrap_or("JarlDue");
         println!("{:?}", username);
         Cred::userpass_plaintext(&username, &token)
