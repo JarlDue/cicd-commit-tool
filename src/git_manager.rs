@@ -1,6 +1,6 @@
 use std::env;
 use std::error::Error;
-use git2::{Cred, RemoteCallbacks, Repository, Signature};
+use git2::{Cred, PushOptions, RemoteCallbacks, Repository, Signature};
 
 pub fn get_git_repo() -> Repository {
     Repository::open(".").expect("Failed to open repo")
@@ -43,9 +43,12 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
         Cred::userpass_plaintext(username_from_url.unwrap(), &password)
     });
 
+    let mut push_options = PushOptions::new();
+    push_options.remote_callbacks(callbacks);
+
     // Push the changes
     let mut remote = repo.find_remote("origin")?;
-    remote.push(&["refs/heads/main:refs/heads/main"], None)?;
+    remote.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_options))?;
 
     Ok(())
 }
