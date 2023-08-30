@@ -40,7 +40,8 @@ pub fn commit_to_repo(message: &str, committer_name: &str, commiter_email: &str)
     let mut callbacks = RemoteCallbacks::new();
     callbacks.credentials(|_url, username_from_url, _allowed_types| {
         let password = env::var("GIT_PASSWORD").expect("GIT_PASSWORD not set");
-        Cred::userpass_plaintext(username_from_url.unwrap_or("JarlDue"), &password)
+        let username = username_from_url.ok_or_else(|| git2::Error::from_str("Username not found"))?;
+        Cred::userpass_plaintext(&username, &password)
     });
 
     let mut push_options = PushOptions::new();
