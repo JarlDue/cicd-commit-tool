@@ -37,43 +37,37 @@ pub fn get_diff<'a>(tree: &'a Tree, repository: &'a Repository) -> Diff<'a> {
    repository.diff_tree_to_workdir_with_index(Some(&tree), None).expect("Failed to get diff")
 }
 
-pub fn scan_for_secrets(tree: &Tree, repo: &Repository) -> Option<Vec<FoundSecret>> {
-    let mut file_contents: HashMap<String, Vec<u8>> = HashMap::new();
-
-    tree.walk(git2::TreeWalkMode::PreOrder, |_, entry| {
-        let name = entry.name().unwrap_or_default();
-        let object = entry.to_object(&repo).unwrap();
-
-        if let ObjectType::Blob = object.kind().unwrap() {
-            let blob = object.as_blob().unwrap();
-            file_contents.insert(
-                name.to_string(),
-                blob.content().to_vec(),
-            );
-        }
-
-        true
-    }).expect("Failed to walk the tree");
-
+pub fn scan_for_secrets(diff: &Diff, tree: &Tree, repo: &Repository) -> Option<Vec<FoundSecret>> {
     let secrets = ["password", "token", "secret"];
-    let mut found_secrets: Vec<FoundSecret> = Vec::new();
+    let mut found_secrets = Vec::new();
 
-    for (file, content) in file_contents.iter() {
-        let file_content_str = String::from_utf8_lossy(content);
+    // Iterate through each diff to find the changed files
+    diff.foreach(&mut |delta, _| {
+        if let Some(file_path) = delta.new_file().path() {
+            if let Ok(object) = tree.get_path(file_path) {
+                if let ObjectType::Blob = object.kind().unwrap() {
+                    let blob_object = object.to_object(&repo).unwrap();
+                    let blob = blob_object.as_blob().unwrap(); // This should work now
+                    let content = blob.content();
 
-        for (line_number, line) in file_content_str.lines().enumerate() {
-            for secret in secrets.iter() {
-                if line.contains(secret) {
-                    found_secrets.push(FoundSecret {
-                        file: file.clone(),
-                        line_number: line_number + 1, // line_number is zero-based
-                        line_content: line.to_string(),
-                        secret_keyword: secret.to_string(),
-                    });
+                    let secrets = ["password", "token", "secret"];
+                    for (line_number, line) in String::from_utf8_lossy(content).lines().enumerate() {
+                        for &secret in &secrets {
+                            if line.contains(secret) {
+                                found_secrets.push(FoundSecret {
+                                    file: file_path.to_str().unwrap().to_string(),
+                                    line_number: line_number + 1,
+                                    line_content: line.to_string(),
+                                    secret_keyword: secret.to_string(),
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
+        true
+    }, None, None, None).expect("Error iterating through diff");
 
     if found_secrets.is_empty() {
         None

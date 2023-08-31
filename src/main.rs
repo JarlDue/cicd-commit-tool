@@ -43,7 +43,7 @@ fn main() {
                 }
                 println!("Forcing the commit");
             }
-            let found_secrets = commit_manager::scan_for_secrets(&tree, &repo);
+            let found_secrets = commit_manager::scan_for_secrets(&diff, &tree, &repo);
 
             match found_secrets {
                 None => {}
