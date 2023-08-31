@@ -37,7 +37,7 @@ pub fn get_diff<'a>(tree: &'a Tree, repository: &'a Repository) -> Diff<'a> {
    repository.diff_tree_to_workdir_with_index(Some(&tree), None).expect("Failed to get diff")
 }
 
-pub fn scan_for_secrets(tree: &Tree, repo: &Repository) -> Option<Vec<String>> {
+pub fn scan_for_secrets(tree: &Tree, repo: &Repository) -> Option<Vec<FoundSecret>> {
     let mut file_contents: HashMap<String, Vec<u8>> = HashMap::new();
 
     tree.walk(git2::TreeWalkMode::PreOrder, |_, entry| {
@@ -56,13 +56,21 @@ pub fn scan_for_secrets(tree: &Tree, repo: &Repository) -> Option<Vec<String>> {
     }).expect("Failed to walk the tree");
 
     let secrets = ["password", "token", "secret"];
-    let mut found_secrets: Vec<String> = Vec::new();
+    let mut found_secrets: Vec<FoundSecret> = Vec::new();
 
     for (file, content) in file_contents.iter() {
         let file_content_str = String::from_utf8_lossy(content);
-        for secret in secrets.iter() {
-            if file_content_str.contains(secret) {
-                found_secrets.push(secret.to_string());
+
+        for (line_number, line) in file_content_str.lines().enumerate() {
+            for secret in secrets.iter() {
+                if line.contains(secret) {
+                    found_secrets.push(FoundSecret {
+                        file: file.clone(),
+                        line_number: line_number + 1, // line_number is zero-based
+                        line_content: line.to_string(),
+                        secret_keyword: secret.to_string(),
+                    });
+                }
             }
         }
     }
@@ -72,4 +80,12 @@ pub fn scan_for_secrets(tree: &Tree, repo: &Repository) -> Option<Vec<String>> {
     } else {
         Some(found_secrets)
     }
+}
+
+#[derive(Debug)]
+pub struct FoundSecret {
+    pub file: String,
+    pub line_number: usize,
+    pub line_content: String,
+    pub secret_keyword: String,
 }

@@ -4,6 +4,7 @@ mod commit_manager;
 use std::{io, process};
 use std::error::Error;
 use clap::{Parser, Subcommand};
+use crate::commit_manager::FoundSecret;
 
 #[derive(Parser)]
 #[command(author = "Jarl Due. <jarl.due@sos.eu")]
@@ -42,12 +43,11 @@ fn main() {
                 }
                 println!("Forcing the commit");
             }
-
             let found_secrets = commit_manager::scan_for_secrets(&tree, &repo);
 
             match found_secrets {
                 None => {}
-                Some(_) => {}
+                Some(possible_secrets) => {handle_found_possible_secrets(possible_secrets)}
             }
 
             println!("Committing");
@@ -73,19 +73,16 @@ fn handle_illegal_commit() -> String {
     should_force
 }
 
-fn handle_found_possible_secrets(possible_secrets: Vec<&str>) -> bool {
+fn handle_found_possible_secrets(possible_secrets: Vec<FoundSecret>) {
         println!("We found the following potential secrets:");
         for secret in possible_secrets.iter() {
-            println!("- {}", &secret);
+            println!("- {:?}", &secret);
         }
-        let secret = "secret";
         let mut should_proceed = String::new();
         println!("Are these actual secrets? (y/n)");
         io::stdin().read_line(&mut should_proceed).expect("Failed to read line");
-        let token = "Token";
         if should_proceed.trim() == "y" {
             println!("Aborting commit due to detected secrets.");
-            return false
+            process::exit(1);
         }
-    true
 }
