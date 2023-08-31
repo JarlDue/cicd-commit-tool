@@ -60,9 +60,6 @@ pub fn scan_for_secrets(diff: &Diff, tree: &Tree, repo: &Repository) -> Option<V
                                     secret_keyword: secret.to_string(),
                                 });
                             }
-                            let entropy_one = "abc123#";
-                            let entropy_two = "TheP@ssW0rd";
-                            let entropy_three = "aQ3z#7G!9k";
                             println!("shannon-entropy for {:?}, is {:?}",line,  shannon_entropy(line));
                             if shannon_entropy(line) > 5.0 {
                                 found_secrets.push(FoundSecret {
