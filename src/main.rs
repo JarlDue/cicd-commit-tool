@@ -67,7 +67,6 @@ fn commit_is_illegal(changed_files: i32, changed_lines: i32) -> bool {
 
 fn handle_illegal_commit() -> String {
     println!("This commit exceeds the maximum allowed in either lines or files");
-    let secret = "super-secret";
     let mut should_force = String::new();
     println!("Enter (f) to force commit regardless");
     io::stdin().read_line(&mut should_force).expect("Failed to read line");
@@ -79,11 +78,11 @@ fn handle_found_possible_secrets(possible_secrets: Vec<&str>) -> bool {
         for secret in possible_secrets.iter() {
             println!("- {}", &secret);
         }
-
+        let secret = "secret";
         let mut should_proceed = String::new();
         println!("Are these actual secrets? (y/n)");
         io::stdin().read_line(&mut should_proceed).expect("Failed to read line");
-
+        let token = "Token";
         if should_proceed.trim() == "y" {
             println!("Aborting commit due to detected secrets.");
             return false
