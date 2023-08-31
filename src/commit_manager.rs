@@ -38,7 +38,6 @@ pub fn get_diff<'a>(tree: &'a Tree, repository: &'a Repository) -> Diff<'a> {
 }
 
 pub fn scan_for_secrets(diff: &Diff, tree: &Tree, repo: &Repository) -> Option<Vec<FoundSecret>> {
-    let secrets = ["password", "token", "secret"];
     let mut found_secrets = Vec::new();
 
     // Iterate through each diff to find the changed files
@@ -54,6 +53,18 @@ pub fn scan_for_secrets(diff: &Diff, tree: &Tree, repo: &Repository) -> Option<V
                     for (line_number, line) in String::from_utf8_lossy(content).lines().enumerate() {
                         for &secret in &secrets {
                             if line.contains(secret) {
+                                found_secrets.push(FoundSecret {
+                                    file: file_path.to_str().unwrap().to_string(),
+                                    line_number: line_number + 1,
+                                    line_content: line.to_string(),
+                                    secret_keyword: secret.to_string(),
+                                });
+                            }
+                            let entropy_one = "abc123#";
+                            let entropy_two = "TheP@ssW0rd";
+                            let entropy_three = "aQ3z#7G!9k";
+                            println!("shannon-entropy for {:?}, is {:?}",line,  shannon_entropy(line));
+                            if shannon_entropy(line) > 5.0 {
                                 found_secrets.push(FoundSecret {
                                     file: file_path.to_str().unwrap().to_string(),
                                     line_number: line_number + 1,
@@ -82,4 +93,18 @@ pub struct FoundSecret {
     pub line_number: usize,
     pub line_content: String,
     pub secret_keyword: String,
+}
+
+pub fn shannon_entropy(s: &str) -> f64 {
+    let mut map = HashMap::new();
+    for c in s.chars() {
+        *map.entry(c).or_insert(0) += 1;
+    }
+    let length = s.len() as f64;
+    -map.values()
+        .map(|&count| {
+            let probability = count as f64 / length;
+            probability * probability.log2()
+        })
+        .sum::<f64>()
 }

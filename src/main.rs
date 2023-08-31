@@ -86,3 +86,9 @@ fn handle_found_possible_secrets(possible_secrets: Vec<FoundSecret>) {
             process::exit(1);
         }
 }
+
+fn adding_fake_secrets() {
+    let entropy_one = "abc123#";
+    let entropy_two = "TheP@ssW0rd";
+    let entropy_three = "aQ3z#7G!9k";
+}
